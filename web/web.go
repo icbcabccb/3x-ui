@@ -289,8 +289,9 @@ func (s *Server) initRouter() (*gin.Engine, error) {
 	s.wsHub = websocket.NewHub()
 	go s.wsHub.Run()
 
-	// Initialize WebSocket controller
-	s.ws = controller.NewWebSocketController(s.wsHub)
+	// Initialize WebSocket controller — service owns per-connection pumps,
+	// controller is HTTP-layer only (auth + upgrade).
+	s.ws = controller.NewWebSocketController(service.NewWebSocketService(s.wsHub))
 	// Register WebSocket route with basePath (g already has basePath prefix)
 	g.GET("/ws", s.ws.HandleWebSocket)
 

@@ -10,7 +10,7 @@ func TestLoginLimiterBlocksAfterConfiguredFailures(t *testing.T) {
 	limiter := newLoginLimiter(5, 5*time.Minute, 15*time.Minute)
 	limiter.now = func() time.Time { return now }
 
-	for i := 0; i < 4; i++ {
+	for i := range 4 {
 		if _, blocked := limiter.registerFailure("192.0.2.10", "Admin"); blocked {
 			t.Fatalf("failure %d should not block yet", i+1)
 		}
@@ -41,7 +41,7 @@ func TestLoginLimiterPrunesOldFailuresAndResetsOnSuccess(t *testing.T) {
 	limiter := newLoginLimiter(5, 5*time.Minute, 15*time.Minute)
 	limiter.now = func() time.Time { return now }
 
-	for i := 0; i < 4; i++ {
+	for range 4 {
 		limiter.registerFailure("192.0.2.10", "admin")
 	}
 	now = now.Add(6 * time.Minute)
@@ -50,7 +50,7 @@ func TestLoginLimiterPrunesOldFailuresAndResetsOnSuccess(t *testing.T) {
 	}
 
 	limiter.registerSuccess("192.0.2.10", "admin")
-	for i := 0; i < 4; i++ {
+	for i := range 4 {
 		if _, blocked := limiter.registerFailure("192.0.2.10", "admin"); blocked {
 			t.Fatalf("success should reset previous failures; failure %d blocked", i+1)
 		}
@@ -62,7 +62,7 @@ func TestLoginLimiterSeparatesIPAndUsername(t *testing.T) {
 	limiter := newLoginLimiter(5, 5*time.Minute, 15*time.Minute)
 	limiter.now = func() time.Time { return now }
 
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		limiter.registerFailure("192.0.2.10", "admin")
 	}
 	if _, ok := limiter.allow("192.0.2.11", "admin"); !ok {
