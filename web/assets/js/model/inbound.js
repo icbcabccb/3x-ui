@@ -3197,7 +3197,7 @@ Inbound.TunSettings = class extends Inbound.Settings {
     constructor(
         protocol,
         name = 'xray0',
-        mtu = [1500, 1280],
+        mtu = 1500,
         gateway = [],
         dns = [],
         userLevel = 0,
@@ -3206,7 +3206,7 @@ Inbound.TunSettings = class extends Inbound.Settings {
     ) {
         super(protocol);
         this.name = name;
-        this.mtu = this._normalizeMtu(mtu);
+        this.mtu = Number(mtu) || 1500;
         this.gateway = Array.isArray(gateway) ? gateway : [];
         this.dns = Array.isArray(dns) ? dns : [];
         this.userLevel = userLevel;
@@ -3214,26 +3214,13 @@ Inbound.TunSettings = class extends Inbound.Settings {
         this.autoOutboundsInterface = autoOutboundsInterface;
     }
 
-    _normalizeMtu(mtu) {
-        if (!Array.isArray(mtu)) {
-            const single = Number(mtu) || 1500;
-            return [single, single];
-        }
-        if (mtu.length === 0) {
-            return [1500, 1280];
-        }
-        if (mtu.length === 1) {
-            const single = Number(mtu[0]) || 1500;
-            return [single, single];
-        }
-        return [Number(mtu[0]) || 1500, Number(mtu[1]) || 1280];
-    }
-
     static fromJson(json = {}) {
+        const rawMtu = json.mtu ?? json.MTU;
+        const mtu = Array.isArray(rawMtu) ? rawMtu[0] : rawMtu;
         return new Inbound.TunSettings(
             Protocols.TUN,
             json.name ?? 'xray0',
-            json.mtu ?? json.MTU ?? [1500, 1280],
+            mtu ?? 1500,
             json.gateway ?? json.Gateway ?? [],
             json.dns ?? json.DNS ?? [],
             json.userLevel ?? 0,
@@ -3245,7 +3232,7 @@ Inbound.TunSettings = class extends Inbound.Settings {
     toJson() {
         return {
             name: this.name || 'xray0',
-            mtu: this._normalizeMtu(this.mtu),
+            mtu: Number(this.mtu) || 1500,
             gateway: this.gateway,
             dns: this.dns,
             userLevel: this.userLevel || 0,
